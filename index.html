@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VTuber Schedule Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:#f0f0f8;min-height:100vh;color:#333;overflow:hidden}
+
+.app{display:flex;flex-direction:column;height:100vh}
+
+/* Header */
+.header{background:linear-gradient(135deg,#7c5cbf,#b06bba);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.header h1{font-family:'M PLUS Rounded 1c',sans-serif;color:#fff;font-size:18px;font-weight:800;letter-spacing:1px}
+.header-tabs{display:flex;gap:8px;margin-left:auto}
+.tab-btn{background:rgba(255,255,255,0.2);border:none;border-radius:20px;color:#fff;padding:6px 16px;font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:all 0.2s}
+.tab-btn.active,.tab-btn:hover{background:rgba(255,255,255,0.4);font-weight:700}
+
+/* Layout */
+.main{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:300px;flex-shrink:0;background:#fff;border-right:1px solid #e0d8f0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.sidebar-section{background:#f8f5ff;border-radius:12px;padding:12px}
+.section-title{font-size:11px;font-weight:700;color:#7c5cbf;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+
+/* Form elements */
+.form-row{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+label{font-size:12px;color:#666;font-weight:500}
+input[type="date"],input[type="time"],input[type="text"],select,textarea{width:100%;padding:7px 10px;border:1.5px solid #e0d8f0;border-radius:8px;font-size:13px;font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color 0.2s;background:#fff;color:#333}
+input:focus,select:focus,textarea:focus{border-color:#9b6ddb}
+textarea{resize:vertical;min-height:50px}
+
+.genre-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
+.genre-btn{padding:7px 4px;border:2px solid transparent;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:700;text-align:center;transition:all 0.2s;line-height:1.3}
+.genre-btn:hover{transform:scale(1.03)}
+.genre-btn.selected{box-shadow:0 0 0 2px #fff,0 0 0 4px currentColor}
+
+.g-chat{background:#fff3e0;color:#e65100;border-color:#ffcc80}
+.g-game{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
+.g-song{background:#fce4ec;color:#c62828;border-color:#f48fb1}
+.g-art{background:#e3f2fd;color:#1565c0;border-color:#90caf9}
+.g-collab{background:#f3e5f5;color:#6a1b9a;border-color:#ce93d8}
+.g-superchat{background:#fff8e1;color:#f57f17;border-color:#ffe082}
+.g-3d{background:#e0f2f1;color:#00695c;border-color:#80cbc4}
+.g-special{background:#fbe9e7;color:#bf360c;border-color:#ffab91}
+
+.add-btn{width:100%;padding:9px;background:linear-gradient(135deg,#9b6ddb,#c47fd4);border:none;border-radius:10px;color:#fff;font-size:13px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s}
+.add-btn:hover{opacity:0.9;transform:translateY(-1px)}
+.small-btn{width:100%;margin-top:6px;padding:6px;background:none;border:1.5px solid #ddd;border-radius:8px;font-size:12px;color:#999;cursor:pointer;font-family:'Noto Sans JP',sans-serif}
+.small-btn:hover{border-color:#bbb;color:#777}
+
+/* Calendar area */
+.calendar-area{flex:1;overflow-y:auto;padding:16px;background:#f0f0f8}
+
+/* Month calendar */
+.month-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.month-title{font-family:'M PLUS Rounded 1c',sans-serif;font-size:22px;font-weight:800;color:#7c5cbf}
+.nav-btn{background:#fff;border:1.5px solid #d0c4f0;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:15px;color:#7c5cbf;font-weight:700;font-family:'Noto Sans JP',sans-serif}
+.nav-btn:hover{background:#f0e8ff}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-day-header{text-align:center;font-size:12px;font-weight:700;padding:8px 0;color:#888;border-radius:8px;background:#f0e8ff}
+.cal-day-header.sun{color:#e57373;background:#fce4ec}
+.cal-day-header.sat{color:#64b5f6;background:#e3f2fd}
+
+.cal-day{background:#fff;border-radius:10px;min-height:88px;padding:5px;border:1.5px solid #e8e0f8;cursor:default;transition:border-color 0.2s}
+.cal-day.other-month{background:#f5f5f5;opacity:0.5}
+.cal-day.today{border-color:#9b6ddb;background:#faf7ff}
+.cal-day-num{font-size:12px;font-weight:700;color:#555;margin-bottom:3px}
+.cal-day.sun .cal-day-num{color:#e57373}
+.cal-day.sat .cal-day-num{color:#64b5f6}
+
+.event-chip{border-radius:5px;padding:2px 5px;font-size:10px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:flex;align-items:center;gap:3px}
+.event-chip:hover{opacity:0.8}
+
+/* Week view */
+.week-view-wrap{background:#fff;border-radius:14px;border:1.5px solid #e0d8f0;overflow:hidden}
+.week-header-row{display:grid;grid-template-columns:54px repeat(7,1fr);background:#7c5cbf}
+.week-header-row .wh{padding:8px;text-align:center;color:#fff;font-size:11px;font-weight:700}
+.week-header-row .wh .wh-num{display:block;font-size:20px;font-weight:800;line-height:1.2}
+.week-scroll{overflow-y:auto;max-height:calc(100vh - 280px)}
+.week-body{display:grid;grid-template-columns:54px repeat(7,1fr)}
+.time-col{display:flex;flex-direction:column}
+.time-slot{height:48px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#bbb;border-bottom:1px solid #f5f5f5;flex-shrink:0}
+.day-col{border-left:1px solid #f0f0f0;position:relative;min-height:1152px}
+.hour-line{position:absolute;left:0;right:0;border-bottom:1px solid #f5f5f5;pointer-events:none}
+.event-block{position:absolute;left:3px;right:3px;border-radius:6px;padding:3px 5px;font-size:10px;font-weight:700;overflow:hidden;cursor:pointer;border-left-width:3px;border-left-style:solid}
+.event-block:hover{opacity:0.85;z-index:10}
+
+/* Export panel */
+.export-panel{border-top:1px solid #e0d8f0;padding:10px 16px;background:#fff;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.export-panel label{font-size:12px;font-weight:600;color:#666}
+.exp-select{padding:6px 10px;border:1.5px solid #e0d8f0;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;outline:none;background:#fff}
+.export-btn{padding:8px 18px;background:linear-gradient(135deg,#7c5cbf,#b06bba);border:none;border-radius:10px;color:#fff;font-size:13px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s}
+.export-btn:hover{opacity:0.9}
+.export-hint{font-size:11px;color:#aaa;margin-left:auto}
+
+/* Upload zone */
+.upload-zone{border:2px dashed #d0c4f0;border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all 0.2s;background:#faf5ff}
+.upload-zone:hover{border-color:#9b6ddb;background:#f3eaff}
+.upload-zone.has-image{border-style:solid;border-color:#9b6ddb}
+.upload-zone img{max-width:100%;max-height:90px;border-radius:8px;display:block;margin:0 auto;object-fit:contain}
+.upload-hint{font-size:10px;color:#aaa;margin-top:4px}
+
+/* Event list */
+.event-list{display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto}
+.event-item{display:flex;align-items:center;gap:7px;padding:7px 8px;background:#fff;border-radius:8px;border:1px solid #e8e0f8;font-size:12px}
+.event-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.event-item-info{flex:1;min-width:0}
+.event-item-title{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.event-item-sub{color:#888;font-size:10px}
+.del-btn{background:none;border:none;color:#ddd;cursor:pointer;font-size:13px;padding:2px 4px;line-height:1}
+.del-btn:hover{color:#e57373}
+
+.empty-state{text-align:center;color:#ccc;padding:24px;font-size:12px}
+
+#exportCanvas{display:none;position:absolute;left:-9999px}
+
+/* Scrollbar styling */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#f0f0f0;border-radius:3px}
+::-webkit-scrollbar-thumb{background:#d0c4f0;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#9b6ddb}
+
+/* Toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#7c5cbf;color:#fff;padding:10px 22px;border-radius:20px;font-size:13px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <span style="font-size:22px">🎙️</span>
+    <h1>VTuber Schedule Studio</h1>
+    <div class="header-tabs">
+      <button class="tab-btn active" onclick="switchView('month')">📅 月間カレンダー</button>
+      <button class="tab-btn" onclick="switchView('week')">📋 週間スケジュール</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+      <!-- Genre -->
+      <div class="sidebar-section">
+        <div class="section-title">📡 配信ジャンルを選択</div>
+        <div class="genre-grid">
+          <button class="genre-btn g-chat"     data-genre="chat"      onclick="selectGenre(this)">💬 雑談</button>
+          <button class="genre-btn g-game"     data-genre="game"      onclick="selectGenre(this)">🎮 ゲーム</button>
+          <button class="genre-btn g-song"     data-genre="song"      onclick="selectGenre(this)">🎤 歌枠・カラオケ</button>
+          <button class="genre-btn g-art"      data-genre="art"       onclick="selectGenre(this)">🎨 お絵描き</button>
+          <button class="genre-btn g-collab"   data-genre="collab"    onclick="selectGenre(this)">👥 コラボ</button>
+          <button class="genre-btn g-superchat"data-genre="superchat" onclick="selectGenre(this)">💰 スパチャ読み</button>
+          <button class="genre-btn g-3d"       data-genre="3d"        onclick="selectGenre(this)">✨ 3D配信</button>
+          <button class="genre-btn g-special"  data-genre="special"   onclick="selectGenre(this)">🌟 特別配信</button>
+        </div>
+
+        <div id="extraField" style="display:none">
+          <div class="form-row">
+            <label id="extraLabel">詳細</label>
+            <input type="text" id="extraInput" placeholder="">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>📅 日付</label>
+          <input type="date" id="dateInput">
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div class="form-row" style="flex:1;margin:0">
+            <label>🕐 開始</label>
+            <input type="time" id="startTime">
+          </div>
+          <div class="form-row" style="flex:1;margin:0">
+            <label>🕑 終了</label>
+            <input type="time" id="endTime">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>📝 メモ（任意）</label>
+          <textarea id="memoInput" rows="2" placeholder="補足情報など..."></textarea>
+        </div>
+        <button class="add-btn" onclick="addEvent()">＋ スケジュールを追加</button>
+      </div>
+
+      <!-- Event list -->
+      <div class="sidebar-section">
+        <div class="section-title">📋 登録済み配信</div>
+        <div class="event-list" id="eventList">
+          <div class="empty-state">まだ配信がありません</div>
+        </div>
+      </div>
+
+      <!-- Character image -->
+      <div class="sidebar-section">
+        <div class="section-title">🖼️ キャラクター画像</div>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('charImg').click()">
+          <div id="uploadPlaceholder">
+            <div style="font-size:26px">📸</div>
+            <div style="font-size:11px;color:#9b6ddb;font-weight:700;margin-top:4px">クリックして画像を選択</div>
+            <div class="upload-hint">週間画像の右側に配置されます</div>
+          </div>
+          <img id="uploadedImg" style="display:none" alt="character">
+        </div>
+        <input type="file" id="charImg" accept="image/*" style="display:none" onchange="loadCharImage(this)">
+        <button class="small-btn" onclick="clearImage()">🗑️ 画像をクリア</button>
+      </div>
+
+      <!-- Design settings -->
+      <div class="sidebar-section">
+        <div class="section-title">🎨 デザイン設定</div>
+        <div class="form-row">
+          <label>チャンネル名</label>
+          <input type="text" id="channelName" placeholder="例: 〇〇ちゃんねる" oninput="saveSettings()">
+        </div>
+        <div class="form-row">
+          <label>テーマカラー</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="color" id="themeColor1" value="#7c5cbf" style="width:36px;height:36px;padding:2px;border-radius:8px;border:1.5px solid #e0d8f0;cursor:pointer" oninput="saveSettings()">
+            <input type="color" id="themeColor2" value="#b06bba" style="width:36px;height:36px;padding:2px;border-radius:8px;border:1.5px solid #e0d8f0;cursor:pointer" oninput="saveSettings()">
+            <span style="font-size:11px;color:#aaa">グラデーション</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>背景カラー</label>
+          <input type="color" id="bgColor" value="#f0eafa" style="width:36px;height:36px;padding:2px;border-radius:8px;border:1.5px solid #e0d8f0;cursor:pointer" oninput="saveSettings()">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Calendar area -->
+    <div class="calendar-area" id="calendarArea"></div>
+  </div>
+
+  <!-- Export bar -->
+  <div class="export-panel">
+    <span style="font-size:18px">📤</span>
+    <label>書き出し形式：</label>
+    <select class="exp-select" id="exportType">
+      <option value="week">週間スケジュール (1920×1080)</option>
+      <option value="month">月間カレンダー (1920×1080)</option>
+    </select>
+    <button class="export-btn" onclick="exportImage()">🖼️ 画像を書き出す</button>
+    <div class="export-hint">PNG形式で自動ダウンロードされます（SNS投稿・WIX掲載に対応）</div>
+  </div>
+</div>
+
+<canvas id="exportCanvas"></canvas>
+<div class="toast" id="toast"></div>
+
+<script>
+// =========================================================
+// DATA
+// =========================================================
+const GENRES = {
+  chat:     {label:'雑談',         icon:'💬', bg:'#fff3e0', color:'#e65100', tc:'#bf360c'},
+  game:     {label:'ゲーム',       icon:'🎮', bg:'#e8f5e9', color:'#2e7d32', tc:'#1b5e20'},
+  song:     {label:'歌枠',         icon:'🎤', bg:'#fce4ec', color:'#c62828', tc:'#b71c1c'},
+  art:      {label:'お絵描き',     icon:'🎨', bg:'#e3f2fd', color:'#1565c0', tc:'#0d47a1'},
+  collab:   {label:'コラボ',       icon:'👥', bg:'#f3e5f5', color:'#6a1b9a', tc:'#4a148c'},
+  superchat:{label:'スパチャ読み', icon:'💰', bg:'#fff8e1', color:'#f57f17', tc:'#e65100'},
+  '3d':     {label:'3D配信',      icon:'✨', bg:'#e0f2f1', color:'#00695c', tc:'#004d40'},
+  special:  {label:'特別配信',     icon:'🌟', bg:'#fbe9e7', color:'#bf360c', tc:'#b71c1c'}
+};
+
+let events = JSON.parse(localStorage.getItem('vss_events') || '[]');
+let settings = JSON.parse(localStorage.getItem('vss_settings') || '{}');
+let charImageData = localStorage.getItem('vss_char_img') || null;
+let currentView = 'month';
+let currentMonthDate = new Date();
+let selectedWeekStart = null;
+let currentGenre = null;
+const today = new Date();
+
+function saveEvents(){ localStorage.setItem('vss_events', JSON.stringify(events)); }
+function saveSettings(){ 
+  settings = {
+    channelName: document.getElementById('channelName').value,
+    themeColor1: document.getElementById('themeColor1').value,
+    themeColor2: document.getElementById('themeColor2').value,
+    bgColor: document.getElementById('bgColor').value
+  };
+  localStorage.setItem('vss_settings', JSON.stringify(settings)); 
+}
+function loadSettings(){
+  if(settings.channelName) document.getElementById('channelName').value = settings.channelName;
+  if(settings.themeColor1) document.getElementById('themeColor1').value = settings.themeColor1;
+  if(settings.themeColor2) document.getElementById('themeColor2').value = settings.themeColor2;
+  if(settings.bgColor) document.getElementById('bgColor').value = settings.bgColor;
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// =========================================================
+// INIT
+// =========================================================
+(function init(){
+  const d = new Date();
+  document.getElementById('dateInput').value = d.toISOString().split('T')[0];
+  loadSettings();
+  if(charImageData){
+    document.getElementById('uploadedImg').src = charImageData;
+    document.getElementById('uploadedImg').style.display = 'block';
+    document.getElementById('uploadPlaceholder').style.display = 'none';
+    document.getElementById('uploadZone').classList.add('has-image');
+  }
+  renderAll();
+})();
+
+// =========================================================
+// GENRE SELECTION
+// =========================================================
+function selectGenre(btn){
+  document.querySelectorAll('.genre-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  currentGenre = btn.dataset.genre;
+  const ef = document.getElementById('extraField');
+  const el = document.getElementById('extraLabel');
+  const ei = document.getElementById('extraInput');
+  if(currentGenre === 'game'){
+    ef.style.display = 'block';
+    el.textContent = '🎮 ゲームタイトル';
+    ei.placeholder = '例: ストリートファイター6';
+  } else if(currentGenre === 'collab'){
+    ef.style.display = 'block';
+    el.textContent = '👥 コラボ相手';
+    ei.placeholder = '例: 〇〇ちゃん';
+  } else {
+    ef.style.display = 'none';
+    ei.value = '';
+  }
+}
+
+// =========================================================
+// ADD / REMOVE EVENT
+// =========================================================
+function addEvent(){
+  if(!currentGenre){ showToast('⚠️ ジャンルを選択してください'); return; }
+  const date = document.getElementById('dateInput').value;
+  if(!date){ showToast('⚠️ 日付を選択してください'); return; }
+  const start = document.getElementById('startTime').value;
+  const end   = document.getElementById('endTime').value;
+  const extra = document.getElementById('extraInput').value.trim();
+  const memo  = document.getElementById('memoInput').value.trim();
+  const g = GENRES[currentGenre];
+  let title = g.icon + ' ' + g.label;
+  if(extra) title += '：' + extra;
+  events.push({id: Date.now(), date, start, end, genre: currentGenre, extra, memo, title});
+  saveEvents();
+  renderAll();
+  document.getElementById('startTime').value = '';
+  document.getElementById('endTime').value   = '';
+  document.getElementById('extraInput').value = '';
+  document.getElementById('memoInput').value  = '';
+  showToast('✅ 追加しました：' + title);
+}
+
+function removeEvent(id){
+  events = events.filter(e => e.id !== id);
+  saveEvents();
+  renderAll();
+}
+
+// =========================================================
+// RENDER EVENT LIST
+// =========================================================
+function renderEventList(){
+  const el = document.getElementById('eventList');
+  const sorted = [...events].sort((a,b)=>a.date.localeCompare(b.date)||(a.start||'').localeCompare(b.start||''));
+  if(!sorted.length){ el.innerHTML = '<div class="empty-state">まだ配信がありません</div>'; return; }
+  el.innerHTML = sorted.reverse().map(ev=>{
+    const g = GENRES[ev.genre];
+    const d = new Date(ev.date + 'T00:00:00');
+    const dstr = `${d.getMonth()+1}/${d.getDate()}`;
+    return `<div class="event-item">
+      <div class="event-dot" style="background:${g.color}"></div>
+      <div class="event-item-info">
+        <div class="event-item-title">${ev.title}</div>
+        <div class="event-item-sub">${dstr} ${ev.start||''} ${ev.end?'→'+ev.end:''}</div>
+      </div>
+      <button class="del-btn" onclick="removeEvent(${ev.id})" title="削除">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// =========================================================
+// SWITCH VIEW
+// =========================================================
+function switchView(v){
+  currentView = v;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active', i===(v==='month'?0:1)));
+  renderAll();
+}
+
+function renderAll(){
+  if(currentView === 'month') renderMonth();
+  else renderWeek();
+  renderEventList();
+}
+
+// =========================================================
+// MONTH CALENDAR
+// =========================================================
+function renderMonth(){
+  const y = currentMonthDate.getFullYear();
+  const m = currentMonthDate.getMonth();
+  const firstDay = new Date(y,m,1).getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const daysInPrev  = new Date(y,m,0).getDate();
+  const DAYS = ['日','月','火','水','木','金','土'];
+  const todayStr = today.toISOString().split('T')[0];
+
+  let html = `
+    <div class="month-header">
+      <button class="nav-btn" onclick="changeMonth(-1)">◀ 前月</button>
+      <div class="month-title">${y}年 ${m+1}月</div>
+      <button class="nav-btn" onclick="changeMonth(1)">次月 ▶</button>
+    </div>
+    <div class="cal-grid">
+      ${DAYS.map((d,i)=>`<div class="cal-day-header ${i===0?'sun':i===6?'sat':''}">${d}</div>`).join('')}
+  `;
+
+  let dayNum = 1, nextDay = 1;
+  for(let i = 0; i < 42; i++){
+    const col = i % 7;
+    let date, cls = 'cal-day';
+    if(i < firstDay){
+      date = new Date(y, m-1, daysInPrev - firstDay + i + 1);
+      cls += ' other-month';
+    } else if(dayNum > daysInMonth){
+      date = new Date(y, m+1, nextDay++);
+      cls += ' other-month';
+    } else {
+      date = new Date(y, m, dayNum++);
+    }
+    if(col===0) cls += ' sun';
+    if(col===6) cls += ' sat';
+    const dstr = date.toISOString().split('T')[0];
+    if(dstr === todayStr) cls += ' today';
+    const dayEv = events.filter(e=>e.date===dstr).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+    const chips = dayEv.slice(0,4).map(ev=>{
+      const g = GENRES[ev.genre];
+      const short = ev.title.length > 10 ? ev.title.substring(0,10)+'…' : ev.title;
+      return `<div class="event-chip" style="background:${g.bg};color:${g.tc};border-left:3px solid ${g.color}" onclick="event.stopPropagation();if(confirm('「${ev.title}」を削除しますか？'))removeEvent(${ev.id})" title="${ev.title} ${ev.start||''} — クリックで削除">
+        <span>${short}</span>
+      </div>`;
+    }).join('');
+    const more = dayEv.length > 4 ? `<div style="font-size:9px;color:#9b6ddb;font-weight:700;padding:1px 4px">+${dayEv.length-4}件</div>` : '';
+    html += `<div class="${cls}"><div class="cal-day-num">${date.getDate()}</div>${chips}${more}</div>`;
+  }
+  html += '</div>';
+  document.getElementById('calendarArea').innerHTML = html;
+}
+
+function changeMonth(d){
+  currentMonthDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth()+d, 1);
+  renderMonth();
+}
+
+// =========================================================
+// WEEK CALENDAR
+// =========================================================
+function getWeekStart(d){
+  const dt = new Date(d);
+  dt.setDate(dt.getDate() - dt.getDay());
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+
+function renderWeek(){
+  const ws = selectedWeekStart || getWeekStart(today);
+  selectedWeekStart = ws;
+  const DAYS = ['日','月','火','水','木','金','土'];
+  const dates = [];
+  for(let i=0; i<7; i++){
+    const d = new Date(ws); d.setDate(ws.getDate()+i); dates.push(d);
+  }
+  const todayStr = today.toISOString().split('T')[0];
+  const d1 = dates[0], d7 = dates[6];
+
+  let html = `
+    <div class="month-header">
+      <button class="nav-btn" onclick="changeWeek(-1)">◀ 前週</button>
+      <div class="month-title">${d1.getMonth()+1}/${d1.getDate()} 〜 ${d7.getMonth()+1}/${d7.getDate()}</div>
+      <button class="nav-btn" onclick="changeWeek(1)">次週 ▶</button>
+    </div>
+    <div class="week-view-wrap">
+      <div class="week-header-row">
+        <div class="wh"></div>
+        ${dates.map((d,i)=>{
+          const dstr = d.toISOString().split('T')[0];
+          const isT = dstr===todayStr;
+          const bg = i===0?'#9e3a3a':i===6?'#2a5a9e':'';
+          return `<div class="wh" style="${bg?'background:'+bg:''}${isT?';box-shadow:inset 0 -3px 0 #fff':''}">
+            ${DAYS[i]}<span class="wh-num">${d.getDate()}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="week-scroll">
+        <div class="week-body">
+          <div class="time-col">
+            ${Array.from({length:24},(_,h)=>`<div class="time-slot">${String(h).padStart(2,'0')}:00</div>`).join('')}
+          </div>
+          ${dates.map(d=>{
+            const dstr = d.toISOString().split('T')[0];
+            const dayEv = events.filter(e=>e.date===dstr);
+            let colHtml = '<div class="day-col">';
+            for(let h=0;h<24;h++) colHtml += `<div class="hour-line" style="top:${h*48}px"></div>`;
+            dayEv.forEach(ev=>{
+              const g = GENRES[ev.genre];
+              const sh = ev.start ? parseInt(ev.start.split(':')[0]) : 9;
+              const sm = ev.start ? parseInt(ev.start.split(':')[1]) : 0;
+              const eh = ev.end   ? parseInt(ev.end.split(':')[0])   : sh+2;
+              const em = ev.end   ? parseInt(ev.end.split(':')[1])   : 0;
+              const top = (sh*60+sm)/60*48;
+              const dur = Math.max(((eh*60+em)-(sh*60+sm))/60, 0.5);
+              const height = Math.max(dur*48-2, 20);
+              colHtml += `<div class="event-block" 
+                style="top:${top}px;height:${height}px;background:${g.bg};color:${g.tc};border-left-color:${g.color}"
+                onclick="if(confirm('「${ev.title}」を削除しますか？'))removeEvent(${ev.id})"
+                title="${ev.title} ${ev.start||''} — クリックで削除">
+                <div style="font-size:9px;opacity:0.8">${ev.start||''}</div>
+                <div style="font-size:10px;overflow:hidden">${ev.title}</div>
+              </div>`;
+            });
+            colHtml += '</div>';
+            return colHtml;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('calendarArea').innerHTML = html;
+}
+
+function changeWeek(d){
+  const ws = selectedWeekStart || getWeekStart(today);
+  const nws = new Date(ws);
+  nws.setDate(ws.getDate() + d*7);
+  selectedWeekStart = nws;
+  renderWeek();
+}
+
+// =========================================================
+// IMAGE UPLOAD
+// =========================================================
+function loadCharImage(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 5 * 1024 * 1024){ showToast('⚠️ 5MB以下の画像を選択してください'); return; }
+  const reader = new FileReader();
+  reader.onload = e=>{
+    charImageData = e.target.result;
+    try{ localStorage.setItem('vss_char_img', charImageData); }catch(err){ console.warn('Storage full'); }
+    document.getElementById('uploadedImg').src = charImageData;
+    document.getElementById('uploadedImg').style.display = 'block';
+    document.getElementById('uploadPlaceholder').style.display = 'none';
+    document.getElementById('uploadZone').classList.add('has-image');
+    showToast('✅ 画像を設定しました');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage(){
+  charImageData = null;
+  localStorage.removeItem('vss_char_img');
+  document.getElementById('uploadedImg').src = '';
+  document.getElementById('uploadedImg').style.display = 'none';
+  document.getElementById('uploadPlaceholder').style.display = 'block';
+  document.getElementById('uploadZone').classList.remove('has-image');
+}
+
+// =========================================================
+// CANVAS HELPERS
+// =========================================================
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function getFonts(){
+  return {
+    title: '\'M PLUS Rounded 1c\', \'Noto Sans JP\', sans-serif',
+    body:  '\'Noto Sans JP\', sans-serif'
+  };
+}
+
+// =========================================================
+// EXPORT
+// =========================================================
+async function exportImage(){
+  const type = document.getElementById('exportType').value;
+  const canvas = document.getElementById('exportCanvas');
+  canvas.width  = 1920;
+  canvas.height = 1080;
+  const ctx = canvas.getContext('2d');
+  showToast('⏳ 画像を生成中...');
+  await new Promise(r=>setTimeout(r, 50));
+  if(type === 'week') await drawWeekImage(ctx);
+  else await drawMonthImage(ctx);
+  const link = document.createElement('a');
+  link.download = type === 'week' ? 'weekly_schedule.png' : 'monthly_calendar.png';
+  link.href = canvas.toDataURL('image/png', 1.0);
+  link.click();
+  showToast('✅ 画像をダウンロードしました！');
+}
+
+// ---- Week export ----
+async function drawWeekImage(ctx){
+  const W = 1920, H = 1080;
+  const c1 = settings.themeColor1 || '#7c5cbf';
+  const c2 = settings.themeColor2 || '#b06bba';
+  const bg = settings.bgColor     || '#f0eafa';
+  const ch = settings.channelName || '';
+  const fonts = getFonts();
+
+  const ws = selectedWeekStart || getWeekStart(today);
+  const dates = [];
+  for(let i=0;i<7;i++){ const d=new Date(ws); d.setDate(ws.getDate()+i); dates.push(d); }
+  const dateStrs = dates.map(d=>d.toISOString().split('T')[0]);
+  const DAYS = ['日','月','火','水','木','金','土'];
+
+  const LP = charImageData ? 1260 : W - 40;
+  const RP_X = LP + 20, RP_W = W - LP - 40;
+
+  // BG
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
+
+  // Left panel
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, 20, 20, LP-40, H-40, 24); ctx.fill();
+
+  // Header gradient
+  const grd = ctx.createLinearGradient(20,20,LP-20,20);
+  grd.addColorStop(0,c1); grd.addColorStop(1,c2);
+  ctx.fillStyle = grd;
+  roundRect(ctx, 20, 20, LP-40, 88, 24); ctx.fill();
+
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold 38px ${fonts.title}`;
+  ctx.fillText('📅 Weekly Schedule', 50, 76);
+
+  if(ch){
+    ctx.font = `24px ${fonts.body}`;
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.textAlign = 'right';
+    ctx.fillText(ch, LP-50, 76);
+    ctx.textAlign = 'left';
+  }
+
+  // Date range label
+  const d1=dates[0], d7=dates[6];
+  ctx.font = `20px ${fonts.body}`;
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  ctx.fillText(`${d1.getMonth()+1}/${d1.getDate()} 〜 ${d7.getMonth()+1}/${d7.getDate()}`, 50, 100);
+
+  // Day rows
+  const rowH = (H - 130) / 7;
+  const startY = 120;
+
+  for(let i = 0; i < 7; i++){
+    const y = startY + i * rowH;
+    const d = dates[i];
+    const dstr = dateStrs[i];
+    const dayEv = events.filter(e=>e.date===dstr).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+
+    // Row bg
+    ctx.fillStyle = i%2===0 ? '#faf8ff' : '#f4eeff';
+    roundRect(ctx, 30, y+2, LP-60, rowH-4, 14); ctx.fill();
+
+    // Day badge
+    const bc = i===0?'#e57373':i===6?'#64b5f6':c1;
+    ctx.fillStyle = bc;
+    roundRect(ctx, 42, y+10, 84, rowH-20, 12); ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold 34px ${fonts.title}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(d.getDate(), 84, y + rowH/2 + 8);
+    ctx.font = `16px ${fonts.body}`;
+    ctx.fillText(DAYS[i], 84, y + rowH/2 + 30);
+    ctx.textAlign = 'left';
+
+    // Events
+    if(dayEv.length === 0){
+      ctx.fillStyle = '#ccc';
+      ctx.font = `22px ${fonts.body}`;
+      ctx.fillText('おやすみ 💤', 148, y + rowH/2 + 10);
+    } else {
+      let ex = 148;
+      const maxX = LP - 55;
+      dayEv.forEach(ev=>{
+        if(ex >= maxX) return;
+        const g = GENRES[ev.genre];
+        const chipW = Math.min(ctx.measureText(ev.title).width + 80, 380);
+        if(ex + chipW > maxX) return;
+        ctx.fillStyle = g.bg;
+        roundRect(ctx, ex, y+12, chipW, rowH-24, 10); ctx.fill();
+        ctx.fillStyle = g.color;
+        roundRect(ctx, ex, y+12, 6, rowH-24, 3); ctx.fill();
+        ctx.fillStyle = g.tc;
+        if(ev.start){
+          ctx.font = `bold 16px ${fonts.body}`;
+          ctx.fillText(ev.start, ex+14, y+rowH/2 - 6);
+        }
+        ctx.font = `bold 20px ${fonts.body}`;
+        const lbl = ev.title.length>16 ? ev.title.substring(0,16)+'…' : ev.title;
+        ctx.fillText(lbl, ex+14, y+rowH/2 + 16);
+        ex += chipW + 12;
+      });
+    }
+  }
+
+  // Right panel (character)
+  if(charImageData){
+    ctx.fillStyle = '#fff';
+    roundRect(ctx, RP_X, 20, RP_W, H-40, 24); ctx.fill();
+    const img = new Image();
+    await new Promise(r=>{ img.onload=r; img.src=charImageData; });
+    const scale = Math.min(RP_W/img.width, (H-80)/img.height);
+    const dw = img.width*scale, dh = img.height*scale;
+    ctx.drawImage(img, RP_X+(RP_W-dw)/2, 20+(H-40-dh)/2, dw, dh);
+  }
+}
+
+// ---- Month export ----
+async function drawMonthImage(ctx){
+  const W = 1920, H = 1080;
+  const c1 = settings.themeColor1 || '#7c5cbf';
+  const c2 = settings.themeColor2 || '#b06bba';
+  const bg = settings.bgColor     || '#f0eafa';
+  const ch = settings.channelName || '';
+  const fonts = getFonts();
+  const y = currentMonthDate.getFullYear();
+  const m = currentMonthDate.getMonth();
+
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#fff'; roundRect(ctx,20,20,W-40,H-40,24); ctx.fill();
+
+  const grd = ctx.createLinearGradient(20,20,W-20,20);
+  grd.addColorStop(0,c1); grd.addColorStop(1,c2);
+  ctx.fillStyle = grd; roundRect(ctx,20,20,W-40,76,24); ctx.fill();
+
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold 38px ${fonts.title}`;
+  ctx.textAlign = 'center';
+  ctx.fillText(`${y}年 ${m+1}月 配信スケジュール`, W/2, 70);
+  if(ch){
+    ctx.font = `22px ${fonts.body}`;
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.textAlign = 'right';
+    ctx.fillText(ch, W-50, 70);
+  }
+  ctx.textAlign = 'left';
+
+  const DAYS = ['日','月','火','水','木','金','土'];
+  const colW  = (W-60)/7;
+  const headerY = 108;
+  const headerH = 36;
+  DAYS.forEach((d,i)=>{
+    ctx.fillStyle = i===0?'#fce4ec':i===6?'#e3f2fd':'#ede7f6';
+    roundRect(ctx, 30+i*colW, headerY, colW-4, headerH, 8); ctx.fill();
+    ctx.fillStyle = i===0?'#c62828':i===6?'#1565c0':c1;
+    ctx.font = `bold 20px ${fonts.body}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(d, 30+i*colW+colW/2, headerY+24);
+    ctx.textAlign = 'left';
+  });
+
+  const firstDay    = new Date(y,m,1).getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const daysInPrev  = new Date(y,m,0).getDate();
+  const rowH = (H - 60 - headerY - headerH - 20) / 6;
+  const todayStr = today.toISOString().split('T')[0];
+
+  for(let i=0;i<42;i++){
+    const col = i%7, row = Math.floor(i/7);
+    const cx = 30+col*colW, cy = headerY+headerH+6+row*rowH;
+    let date, other=false;
+    if(i<firstDay){ date=new Date(y,m-1,daysInPrev-firstDay+i+1); other=true; }
+    else if(i-firstDay>=daysInMonth){ date=new Date(y,m+1,i-firstDay-daysInMonth+1); other=true; }
+    else date = new Date(y,m,i-firstDay+1);
+    const dstr = date.toISOString().split('T')[0];
+
+    ctx.fillStyle = other?'#f9f9f9':'#fff';
+    roundRect(ctx, cx, cy, colW-4, rowH-4, 10); ctx.fill();
+    if(!other){
+      ctx.strokeStyle = '#f0e8ff'; ctx.lineWidth=1;
+      roundRect(ctx, cx, cy, colW-4, rowH-4, 10); ctx.stroke(); ctx.lineWidth=1;
+    }
+    if(dstr===todayStr){
+      ctx.strokeStyle = c1; ctx.lineWidth=2.5;
+      roundRect(ctx, cx, cy, colW-4, rowH-4, 10); ctx.stroke(); ctx.lineWidth=1;
+    }
+
+    ctx.fillStyle = other?'#ccc':col===0?'#e57373':col===6?'#64b5f6':'#555';
+    ctx.font = `bold 18px ${fonts.body}`;
+    ctx.fillText(date.getDate(), cx+8, cy+24);
+
+    const dayEv = events.filter(e=>e.date===dstr).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+    let ey = cy+30;
+    const chipH = Math.max(Math.floor((rowH-34)/4), 18);
+    dayEv.slice(0,4).forEach(ev=>{
+      const g = GENRES[ev.genre];
+      ctx.fillStyle = g.bg;
+      roundRect(ctx, cx+4, ey, colW-12, chipH, 4); ctx.fill();
+      ctx.fillStyle = g.color;
+      roundRect(ctx, cx+4, ey, 4, chipH, 2); ctx.fill();
+      ctx.fillStyle = g.tc;
+      ctx.font = `bold ${Math.max(chipH-6,10)}px ${fonts.body}`;
+      const maxChars = Math.floor((colW-30)/9);
+      const lbl = ev.title.length>maxChars ? ev.title.substring(0,maxChars)+'…' : ev.title;
+      ctx.fillText(lbl, cx+12, ey+chipH-4);
+      ey += chipH+3;
+    });
+    if(dayEv.length>4){
+      ctx.fillStyle = c1;
+      ctx.font = `12px ${fonts.body}`;
+      ctx.fillText(`+${dayEv.length-4}`, cx+colW-48, ey+12);
+    }
+  }
+}
+</script>
+</body>
+</html>
