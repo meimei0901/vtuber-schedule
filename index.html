@@ -152,14 +152,14 @@ textarea{resize:vertical;min-height:50px}
       <div class="sidebar-section">
         <div class="section-title">📡 配信ジャンルを選択</div>
         <div class="genre-grid">
-          <button class="genre-btn g-chat"     data-genre="chat"      onclick="selectGenre(this)">💬 雑談</button>
-          <button class="genre-btn g-game"     data-genre="game"      onclick="selectGenre(this)">🎮 ゲーム</button>
-          <button class="genre-btn g-song"     data-genre="song"      onclick="selectGenre(this)">🎤 歌枠・カラオケ</button>
-          <button class="genre-btn g-art"      data-genre="art"       onclick="selectGenre(this)">🎨 お絵描き</button>
-          <button class="genre-btn g-collab"   data-genre="collab"    onclick="selectGenre(this)">👥 コラボ</button>
-          <button class="genre-btn g-superchat"data-genre="superchat" onclick="selectGenre(this)">💰 スパチャ読み</button>
-          <button class="genre-btn g-3d"       data-genre="3d"        onclick="selectGenre(this)">✨ 3D配信</button>
-          <button class="genre-btn g-special"  data-genre="special"   onclick="selectGenre(this)">🌟 特別配信</button>
+          <button class="genre-btn g-chat"     data-genre="chat"      onclick="selectGenre(this)">雑談</button>
+          <button class="genre-btn g-game"     data-genre="game"      onclick="selectGenre(this)">ゲーム</button>
+          <button class="genre-btn g-song"     data-genre="song"      onclick="selectGenre(this)">歌枠・カラオケ</button>
+          <button class="genre-btn g-art"      data-genre="art"       onclick="selectGenre(this)">お絵描き</button>
+          <button class="genre-btn g-collab"   data-genre="collab"    onclick="selectGenre(this)">コラボ</button>
+          <button class="genre-btn g-superchat"data-genre="superchat" onclick="selectGenre(this)">スパチャ読み</button>
+          <button class="genre-btn g-3d"       data-genre="3d"        onclick="selectGenre(this)">3D配信</button>
+          <button class="genre-btn g-special"  data-genre="special"   onclick="selectGenre(this)">特別配信</button>
         </div>
 
         <div id="extraField" style="display:none">
@@ -261,14 +261,14 @@ textarea{resize:vertical;min-height:50px}
 // DATA
 // =========================================================
 const GENRES = {
-  chat:     {label:'雑談',         icon:'💬', bg:'#fff3e0', color:'#e65100', tc:'#bf360c'},
-  game:     {label:'ゲーム',       icon:'🎮', bg:'#e8f5e9', color:'#2e7d32', tc:'#1b5e20'},
-  song:     {label:'歌枠',         icon:'🎤', bg:'#fce4ec', color:'#c62828', tc:'#b71c1c'},
-  art:      {label:'お絵描き',     icon:'🎨', bg:'#e3f2fd', color:'#1565c0', tc:'#0d47a1'},
-  collab:   {label:'コラボ',       icon:'👥', bg:'#f3e5f5', color:'#6a1b9a', tc:'#4a148c'},
-  superchat:{label:'スパチャ読み', icon:'💰', bg:'#fff8e1', color:'#f57f17', tc:'#e65100'},
-  '3d':     {label:'3D配信',      icon:'✨', bg:'#e0f2f1', color:'#00695c', tc:'#004d40'},
-  special:  {label:'特別配信',     icon:'🌟', bg:'#fbe9e7', color:'#bf360c', tc:'#b71c1c'}
+  chat:     {label:'雑談',         bg:'#fff3e0', color:'#e65100', tc:'#bf360c'},
+  game:     {label:'ゲーム',       bg:'#e8f5e9', color:'#2e7d32', tc:'#1b5e20'},
+  song:     {label:'歌枠',         bg:'#fce4ec', color:'#c62828', tc:'#b71c1c'},
+  art:      {label:'お絵描き',     bg:'#e3f2fd', color:'#1565c0', tc:'#0d47a1'},
+  collab:   {label:'コラボ',       bg:'#f3e5f5', color:'#6a1b9a', tc:'#4a148c'},
+  superchat:{label:'スパチャ読み', bg:'#fff8e1', color:'#f57f17', tc:'#e65100'},
+  '3d':     {label:'3D配信',      bg:'#e0f2f1', color:'#00695c', tc:'#004d40'},
+  special:  {label:'特別配信',     bg:'#fbe9e7', color:'#bf360c', tc:'#b71c1c'}
 };
 
 let events = JSON.parse(localStorage.getItem('vss_events') || '[]');
@@ -332,11 +332,11 @@ function selectGenre(btn){
   const ei = document.getElementById('extraInput');
   if(currentGenre === 'game'){
     ef.style.display = 'block';
-    el.textContent = '🎮 ゲームタイトル';
+    el.textContent = 'ゲームタイトル';
     ei.placeholder = '例: ストリートファイター6';
   } else if(currentGenre === 'collab'){
     ef.style.display = 'block';
-    el.textContent = '👥 コラボ相手';
+    el.textContent = 'コラボ相手';
     ei.placeholder = '例: 〇〇ちゃん';
   } else {
     ef.style.display = 'none';
@@ -356,7 +356,7 @@ function addEvent(){
   const extra = document.getElementById('extraInput').value.trim();
   const memo  = document.getElementById('memoInput').value.trim();
   const g = GENRES[currentGenre];
-  let title = g.icon + ' ' + g.label;
+  let title = g.label;
   if(extra) title += '：' + extra;
   events.push({id: Date.now(), date, start, end, genre: currentGenre, extra, memo, title});
   saveEvents();
@@ -451,14 +451,16 @@ function renderMonth(){
     const dstr = date.toISOString().split('T')[0];
     if(dstr === todayStr) cls += ' today';
     const dayEv = events.filter(e=>e.date===dstr).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
-    const chips = dayEv.slice(0,4).map(ev=>{
+    const chips = dayEv.slice(0,3).map(ev=>{
       const g = GENRES[ev.genre];
-      const short = ev.title.length > 10 ? ev.title.substring(0,10)+'…' : ev.title;
-      return `<div class="event-chip" style="background:${g.bg};color:${g.tc};border-left:3px solid ${g.color}" onclick="event.stopPropagation();if(confirm('「${ev.title}」を削除しますか？'))removeEvent(${ev.id})" title="${ev.title} ${ev.start||''} — クリックで削除">
-        <span>${short}</span>
+      const extraLine = ev.extra ? `<div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0.85">${ev.extra}</div>` : '';
+      const timeLine  = ev.start ? `<div style="font-size:9px;opacity:0.75">${ev.start}</div>` : '';
+      return `<div class="event-chip" style="background:${g.bg};color:${g.tc};border-left:3px solid ${g.color};flex-direction:column;align-items:flex-start;padding:3px 5px;height:auto" onclick="event.stopPropagation();if(confirm('「${ev.title}」を削除しますか？'))removeEvent(${ev.id})" title="${ev.title} ${ev.start||''} — クリックで削除">
+        <div style="font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${g.label}</div>
+        ${extraLine}${timeLine}
       </div>`;
     }).join('');
-    const more = dayEv.length > 4 ? `<div style="font-size:9px;color:#9b6ddb;font-weight:700;padding:1px 4px">+${dayEv.length-4}件</div>` : '';
+    const more = dayEv.length > 3 ? `<div style="font-size:9px;color:#9b6ddb;font-weight:700;padding:1px 4px">+${dayEv.length-3}件</div>` : '';
     html += `<div class="${cls}"><div class="cal-day-num">${date.getDate()}</div>${chips}${more}</div>`;
   }
   html += '</div>';
@@ -533,7 +535,8 @@ function renderWeek(){
                 onclick="if(confirm('「${ev.title}」を削除しますか？'))removeEvent(${ev.id})"
                 title="${ev.title} ${ev.start||''} — クリックで削除">
                 <div style="font-size:9px;opacity:0.8">${ev.start||''}</div>
-                <div style="font-size:10px;overflow:hidden">${ev.title}</div>
+                <div style="font-size:10px;font-weight:700;overflow:hidden">${g.label}</div>
+                ${ev.extra?`<div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ev.extra}</div>`:''}
               </div>`;
             });
             colHtml += '</div>';
@@ -708,7 +711,7 @@ async function drawWeekImage(ctx){
     if(dayEv.length === 0){
       ctx.fillStyle = '#ccc';
       ctx.font = `22px ${fonts.body}`;
-      ctx.fillText('おやすみ 💤', 148, y + rowH/2 + 10);
+      ctx.fillText('おやすみ', 148, y + rowH/2 + 10);
     } else {
       let ex = 148;
       const maxX = LP - 55;
@@ -822,24 +825,36 @@ async function drawMonthImage(ctx){
 
     const dayEv = events.filter(e=>e.date===dstr).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
     let ey = cy+30;
-    const chipH = Math.max(Math.floor((rowH-34)/4), 18);
-    dayEv.slice(0,4).forEach(ev=>{
+    const chipH = Math.max(Math.floor((rowH-34)/3), 22);
+    dayEv.slice(0,3).forEach(ev=>{
       const g = GENRES[ev.genre];
       ctx.fillStyle = g.bg;
       roundRect(ctx, cx+4, ey, colW-12, chipH, 4); ctx.fill();
       ctx.fillStyle = g.color;
       roundRect(ctx, cx+4, ey, 4, chipH, 2); ctx.fill();
       ctx.fillStyle = g.tc;
-      ctx.font = `bold ${Math.max(chipH-6,10)}px ${fonts.body}`;
-      const maxChars = Math.floor((colW-30)/9);
-      const lbl = ev.title.length>maxChars ? ev.title.substring(0,maxChars)+'…' : ev.title;
-      ctx.fillText(lbl, cx+12, ey+chipH-4);
+      const lineH = Math.max(Math.floor(chipH/3), 10);
+      // line 1: genre label
+      ctx.font = `bold ${lineH+2}px ${fonts.body}`;
+      ctx.fillText(g.label, cx+12, ey + lineH + 1);
+      // line 2: extra (game title / collab partner)
+      if(ev.extra){
+        ctx.font = `${lineH}px ${fonts.body}`;
+        const maxChars = Math.floor((colW-30)/7);
+        const extraTxt = ev.extra.length>maxChars ? ev.extra.substring(0,maxChars)+'…' : ev.extra;
+        ctx.fillText(extraTxt, cx+12, ey + lineH*2 + 1);
+      }
+      // line 3: start time
+      if(ev.start){
+        ctx.font = `${lineH}px ${fonts.body}`;
+        ctx.fillText(ev.start, cx+12, ey + lineH*3 + 1);
+      }
       ey += chipH+3;
     });
-    if(dayEv.length>4){
+    if(dayEv.length>3){
       ctx.fillStyle = c1;
       ctx.font = `12px ${fonts.body}`;
-      ctx.fillText(`+${dayEv.length-4}`, cx+colW-48, ey+12);
+      ctx.fillText(`+${dayEv.length-3}`, cx+colW-48, ey+12);
     }
   }
 }
